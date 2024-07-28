@@ -1,37 +1,76 @@
-import { Image, Text, View, TouchableOpacity } from "react-native";
-import { HelloWave } from "@/components/HelloWave";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Camera } from 'expo-camera';
+import { useTheme } from '@react-navigation/native';
+import { CameraType } from 'expo-camera/build/legacy/Camera.types';
 
 export default function HomeScreen() {
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [type, setType] = useState<CameraType>(CameraType.back);
+  const cameraRef = useRef<Camera | null>(null);
+  const { colors } = useTheme();
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
+  }, []);
+
+  const takePicture = async () => {
+    if (cameraRef.current) {
+      const photo = await cameraRef.current.takePictureAsync();
+      // Here you would send the photo to your backend
+      console.log(photo.uri);
+    }
+  };
+
+  if (hasPermission === null) {
+    return <View />;
+  }
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={{
-            height: 178,
-            width: 290,
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-          }}
-        />
-      }
-    >
-      <ThemedView className="flex-row items-center gap-2 p-4">
-        <ThemedText className="text-4xl font-bold">
-          Carbon Emission Detector
-        </ThemedText>
-      </ThemedView>
-      
-      <View className="p-4">
-        <TouchableOpacity className="bg-blue-500 p-2 rounded">
-          <Text className="text-white">Hello</Text>
-        </TouchableOpacity>
-      </View>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <Camera style={styles.camera} type={type} ref={cameraRef}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.primary }]}
+            onPress={takePicture}
+          >
+            <Text style={styles.buttonText}>Capture</Text>
+          </TouchableOpacity>
+        </View>
+      </Camera>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  camera: {
+    flex: 1,
+  },
+  buttonContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    margin: 20,
+  },
+  button: {
+    flex: 0.1,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    padding: 15,
+    borderRadius: 5,
+  },
+  buttonText: {
+    fontSize: 18,
+    color: 'white',
+  },
+});
