@@ -38,6 +38,35 @@ export default function HomeScreen() {
     detectObjects(model);
   };
 
+  // const detectObjects = async (model: cocoSsd.ObjectDetection) => {
+  //   if (cameraRef.current) {
+  //     try {
+  //       const photo = await cameraRef.current.takePictureAsync({
+  //         base64: true,
+  //       });
+  //       if (photo?.base64) {
+  //         const imageData = await convertBase64ToUint8Array(photo.base64);
+  //         const imageTensor = tf.tensor3d(imageData, [480, 640, 3]);
+  // console.log("image tensor : ",imageTensor)
+  // const normalizedTensor = imageTensor.toFloat().div(tf.scalar(255));
+  // console.log("normalized tensor : ",normalizedTensor)
+  
+  // const reshapedTensor = normalizedTensor.reshape([1, 480, 640, 3]) as tf.Tensor3D;  
+  // console.log("reshaped tensor : ",reshapedTensor)
+  //         const predictions = await model.detect(reshapedTensor);
+  //         setPredictions(predictions);
+  //         updateCarbonEmissions(predictions);
+          
+  //         imageTensor.dispose();
+  //         normalizedTensor.dispose();
+  //         reshapedTensor.dispose();
+  //       }
+  //     } catch (error) {
+  //       console.error("Error in object detection:", error);
+  //     }
+  //   }
+  //   requestAnimationFrame(() => detectObjects(model));
+  // };
   const detectObjects = async (model: cocoSsd.ObjectDetection) => {
     if (cameraRef.current) {
       try {
@@ -46,15 +75,29 @@ export default function HomeScreen() {
         });
         if (photo?.base64) {
           const imageData = await convertBase64ToUint8Array(photo.base64);
-          const imageTensor = tf.tensor3d(imageData, [480, 640, 3]);
   
+          // Create a 3D tensor from the image data
+          const imageTensor = tf.tensor3d(imageData, [480, 640, 3]);
+          console.log("Image tensor: ", imageTensor);
+  
+          // Normalize the image tensor
           const normalizedTensor = imageTensor.toFloat().div(tf.scalar(255));
-          
-          const reshapedTensor = normalizedTensor.reshape([1, 480, 640, 3]) as tf.Tensor3D;  
-          const predictions = await model.detect(reshapedTensor);
+          console.log("Normalized tensor: ", normalizedTensor);
+  
+          // Reshape the tensor to [1, 480, 640, 3] (batch size of 1)
+          // const reshapedTensor = normalizedTensor.reshape([1, 480, 640, 3]) as tf.Tensor3D;
+          const reshapedTensor = normalizedTensor.expandDims(0);
+          console.log("Reshaped tensor: ", reshapedTensor);
+  
+          // Pass the reshaped tensor to the model for detection
+          const predictions = await model.detect(reshapedTensor as tf.Tensor3D);
+          console.log("Predictions: ", predictions);
           setPredictions(predictions);
+  
+          // Update carbon emissions based on predictions
           updateCarbonEmissions(predictions);
-          
+  
+          // Dispose tensors to free memory
           imageTensor.dispose();
           normalizedTensor.dispose();
           reshapedTensor.dispose();
@@ -63,8 +106,10 @@ export default function HomeScreen() {
         console.error("Error in object detection:", error);
       }
     }
+    // Recursively call detectObjects to continue detection
     requestAnimationFrame(() => detectObjects(model));
   };
+  
   
   
   const convertBase64ToUint8Array = async (base64: string): Promise<Uint8Array> => {
