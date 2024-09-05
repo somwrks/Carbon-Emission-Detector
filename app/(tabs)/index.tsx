@@ -20,7 +20,6 @@ interface CarbonEmissions {
 }
 
 export default function HomeScreen() {
-  const [cameraType, setCameraType] = useState<CameraType>(CameraType.back);
   const [permission, requestPermission] = useCameraPermissions();
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [carbonEmissions, setCarbonEmissions] = useState<CarbonEmissions>({});
@@ -38,35 +37,6 @@ export default function HomeScreen() {
     detectObjects(model);
   };
 
-  // const detectObjects = async (model: cocoSsd.ObjectDetection) => {
-  //   if (cameraRef.current) {
-  //     try {
-  //       const photo = await cameraRef.current.takePictureAsync({
-  //         base64: true,
-  //       });
-  //       if (photo?.base64) {
-  //         const imageData = await convertBase64ToUint8Array(photo.base64);
-  //         const imageTensor = tf.tensor3d(imageData, [480, 640, 3]);
-  // console.log("image tensor : ",imageTensor)
-  // const normalizedTensor = imageTensor.toFloat().div(tf.scalar(255));
-  // console.log("normalized tensor : ",normalizedTensor)
-  
-  // const reshapedTensor = normalizedTensor.reshape([1, 480, 640, 3]) as tf.Tensor3D;  
-  // console.log("reshaped tensor : ",reshapedTensor)
-  //         const predictions = await model.detect(reshapedTensor);
-  //         setPredictions(predictions);
-  //         updateCarbonEmissions(predictions);
-          
-  //         imageTensor.dispose();
-  //         normalizedTensor.dispose();
-  //         reshapedTensor.dispose();
-  //       }
-  //     } catch (error) {
-  //       console.error("Error in object detection:", error);
-  //     }
-  //   }
-  //   requestAnimationFrame(() => detectObjects(model));
-  // };
   const detectObjects = async (model: cocoSsd.ObjectDetection) => {
     if (cameraRef.current) {
       try {
@@ -163,13 +133,7 @@ export default function HomeScreen() {
     return Math.random() * 100;
   };
 
-  function toggleCameraType() {
-    setCameraType((current) =>
-      current === CameraType.back ? CameraType.front : CameraType.back
-    );
-    console.log("executed togglecamera");
-  }
-
+ 
   if (!permission) {
     return (
       <ThemedView>
@@ -193,7 +157,6 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <CameraView ref={cameraRef} style={styles.camera}>
-        {/* Camera controls */}
         {predictions.map((prediction, index) => (
           <View
             key={index}
