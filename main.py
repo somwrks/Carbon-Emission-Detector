@@ -5,13 +5,13 @@ from kivy.uix.label import Label
 from kivy.clock import Clock
 import cv2
 import numpy as np
-
+from kivy.graphics.texture import Texture
 
 class CarbonDetectorApp(App):
     def build(self):
         self.load_model()
         self.layout = BoxLayout(orientation='vertical')
-        self.camera = Camera(play=True)
+        self.camera = Camera(play=True, resolution=(640, 480))  # You can adjust the resolution
         self.label = Label(text="Carbon Emission: Scanning...")
         
         self.layout.add_widget(self.camera)
@@ -20,10 +20,34 @@ class CarbonDetectorApp(App):
         Clock.schedule_interval(self.update, 1.0/30.0)  # 30 FPS
         
         return self.layout
-    
     def update(self, dt):
-        # This is where we'll process frames and update the UI
-        pass
+        if self.camera.texture:
+            # Get the pixels from the camera texture
+            pixels = self.camera.texture.pixels
+            
+            # Convert the pixels to a numpy array
+            frame = np.frombuffer(pixels, dtype=np.uint8)
+            frame = frame.reshape(self.camera.texture.height, self.camera.texture.width, 4)
+            
+            # Convert RGBA to BGR (OpenCV format)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+            
+            # Perform object detection
+            boxes, confidences, class_ids = self.detect_objects(frame)
+            frame = self.draw_bounding_boxes(frame, boxes, confidences, class_ids)
+            
+            # Update carbon emission estimation
+            detected_objects = [self.classes[class_id] for class_id in class_ids]
+            emissions = [self.estimate_carbon_emission(obj) for obj in detected_objects]
+            emission_text = ", ".join([f"{obj}: {emission}" for obj, emission in zip(detected_objects, emissions)])
+            self.label.text = f"Carbon Emissions: {emission_text}"
+            
+            # Convert back to texture
+            buf = cv2.flip(frame, 0).tostring()
+            texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+            texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+            self.camera.texture = texture
+        
     def load_model(self):
         net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
         with open("coco.names", "r") as f:
@@ -71,6 +95,7 @@ class CarbonDetectorApp(App):
                 cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
                 cv2.putText(frame, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
         return frame
+    
     def update(self, dt):
         ret, frame = self.camera.texture.pixels
         if ret:
