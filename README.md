@@ -2,6 +2,9 @@
 
 This project is a Kivy-based mobile app that uses YOLO for object detection and estimates carbon emissions based on the detected objects. It leverages OpenCV for image processing and provides live updates of the detected objects and their corresponding carbon footprint.
 
+### Exact Workflow/Structure of Application and Dataset is undecided, feel free to @ me to discuss or join discord 
+
+
 ## Run the Project
 
 Follow these steps to set up the development environment and run the project:
@@ -35,6 +38,7 @@ Ensure you have Python installed on your machine. Then, follow these steps:
    wget https://github.com/pjreddie/darknet/blob/master/cfg/yolov3.cfg
    wget https://github.com/pjreddie/darknet/blob/master/data/coco.names
    ```
+
 
 5. Run the app:
    ```
