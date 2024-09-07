@@ -78,7 +78,10 @@ class CarbonDetectorApp(App):
         
         # Get the YOLO model's output layers
         layer_names = self.net.getLayerNames()
-        output_layers = [layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
+        try:
+            output_layers = [layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
+        except:
+            output_layers = [layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
         # Perform forward pass to get output from YOLO
         outputs = self.net.forward(output_layers)
         
