@@ -1,146 +1,154 @@
-# Importing necessary libraries
-from kivy.app import App  # Main Kivy app class
-from kivy.uix.boxlayout import BoxLayout  # Layout to arrange widgets
-from kivy.uix.camera import Camera  # Camera widget to capture video feed
-from kivy.uix.label import Label  # Label to display text (e.g., carbon emission)
-from kivy.clock import Clock  # For scheduling interval updates
-import cv2  # OpenCV for handling image processing and object detection
-import numpy as np  # Numpy for array manipulation
-from kivy.graphics.texture import Texture  # Convert image frames to textures for display
 
+# Importing necessary libraries for the Carbon Emission Detector App
+# The app uses Kivy for the UI, OpenCV for image processing, and YOLO for object detection
+
+from kivy.app import App  # Main Kivy app class
+from kivy.uix.boxlayout import BoxLayout  # Layout for arranging widgets vertically
+from kivy.uix.camera import Camera  # Camera widget to capture and display the video feed
+from kivy.uix.label import Label  # Label to display carbon emission data
+from kivy.clock import Clock  # Clock to schedule updates at a regular interval (frame update)
+import cv2  # OpenCV for handling image processing and object detection
+import numpy as np  # Numpy for efficient array manipulation
+from kivy.graphics.texture import Texture  # Converts image frames into textures to display in the Kivy app
+
+# Define the CarbonDetectorApp class, which inherits from the Kivy App class.
+# This app captures live camera feed, detects objects using YOLO, and estimates their carbon emissions.
 class CarbonDetectorApp(App):
-    # This function initializes the app, loads the model, sets up the layout, and starts the camera.
+    
+    # Initialize the app and build the user interface (UI)
     def build(self):
-        self.load_model()  # Load YOLO model for object detection
-        self.layout = BoxLayout(orientation='vertical')  # Create a vertical layout
-        self.camera = Camera(play=True, resolution=(640, 480))  # Initialize camera feed with a 640x480 resolution
-        self.label = Label(text="Carbon Emission: Scanning...")  # Create a label to display emission info
+        # Load the YOLO model for object detection
+        self.load_model()  # Custom function to load the pre-trained YOLO model and its configuration
         
-        self.layout.add_widget(self.camera)  # Add camera feed to the layout
-        self.layout.add_widget(self.label)  # Add label to the layout
+        # Create the main layout (vertical box) for displaying the camera feed and carbon emission label
+        self.layout = BoxLayout(orientation='vertical')  
+        # Initialize the camera with a resolution of 640x480 and start the live feed
+        self.camera = Camera(play=True, resolution=(640, 480))  
+        # Create a label to display the carbon emission estimates
+        self.label = Label(text="Carbon Emission: Scanning...")  
         
-        # Schedule the 'update' method to run at 30 frames per second (FPS)
+        # Add the camera and label widgets to the layout
+        self.layout.add_widget(self.camera)
+        self.layout.add_widget(self.label)
+        
+        # Schedule the update function to run 30 times per second (30 FPS) to process camera frames
         Clock.schedule_interval(self.update, 1.0 / 30.0)
         
-        return self.layout  # Return the layout as the main UI element
+        return self.layout  # Return the completed layout as the app's root widget
     
-    # This function updates the camera feed, performs object detection, and estimates carbon emissions.
+    # This function is called at every scheduled interval to update the camera feed and process object detection
     def update(self, dt):
-        if self.camera.texture:
-            # Extract pixel data from the camera texture
+        if self.camera.texture:  # Ensure the camera is capturing data
+            # Extract the pixel data from the camera texture
             pixels = self.camera.texture.pixels
-            
-            # Convert the pixel buffer to a numpy array
+            # Convert the pixel data into a numpy array (for OpenCV processing)
             frame = np.frombuffer(pixels, dtype=np.uint8)
-            # Reshape the array to match the camera resolution with RGBA channels
+            # Reshape the array into the proper frame dimensions (height, width, 4 channels - RGBA)
             frame = frame.reshape(self.camera.texture.height, self.camera.texture.width, 4)
             
-            # Convert RGBA format to BGR (used by OpenCV)
+            # Convert the frame from RGBA (Kivy format) to BGR (OpenCV format) for processing
             frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
             
-            # Perform object detection using YOLO model
+            # Perform object detection using YOLO on the captured frame
             boxes, confidences, class_ids = self.detect_objects(frame)
             
-            # Draw bounding boxes around detected objects
+            # Draw bounding boxes around detected objects and label them
             frame = self.draw_bounding_boxes(frame, boxes, confidences, class_ids)
             
-            # Update carbon emission estimation for detected objects
+            # Retrieve the detected object names and estimate their carbon emissions
             detected_objects = [self.classes[class_id] for class_id in class_ids]
-            # Estimate emissions for each detected object
             emissions = [self.estimate_carbon_emission(obj) for obj in detected_objects]
-            # Format the emission data into a readable string
+            # Display the carbon emission estimates on the label
             emission_text = ", ".join([f"{obj}: {emission}" for obj, emission in zip(detected_objects, emissions)])
-            self.label.text = f"Carbon Emissions: {emission_text}"  # Update label with emission information
+            self.label.text = f"Carbon Emissions: {emission_text}"  # Update the label text
             
-            # Convert the processed frame back to a texture and display it
-            buf = cv2.flip(frame, 0).tostring()  # Flip the frame vertically (for correct orientation)
-            texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')  # Create a Kivy texture
-            texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')  # Copy buffer to texture
-            self.camera.texture = texture  # Set the updated texture as the camera feed
+            # Convert the processed frame back into a Kivy texture for display
+            buf = cv2.flip(frame, 0).tostring()  # Flip the frame vertically (needed for correct display)
+            texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')  # Create a new texture
+            texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')  # Update texture with the new frame data
+            self.camera.texture = texture  # Set the updated texture as the current camera feed
     
-    # Load the YOLO model and classes for object detection
+    # Load the YOLO object detection model and corresponding class names
     def load_model(self):
-        # Load pre-trained YOLO weights and configuration file
+        # Load pre-trained YOLO weights and configuration from disk
         net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
-        # Load object class names from the coco.names file (e.g., car, bus, person, etc.)
+        # Read the object class names from a text file (coco.names)
         with open("coco.names", "r") as f:
-            self.classes = [line.strip() for line in f.readlines()]
-        # Generate random colors for each class
+            self.classes = [line.strip() for line in f.readlines()]  # List of all detectable objects
+        # Generate random colors to visually distinguish between different object classes
         self.colors = np.random.uniform(0, 255, size=(len(self.classes), 3))
-        self.net = net  # Store the YOLO model for later use
+        self.net = net  # Store the loaded YOLO model for later use in detection
 
-    # Function to detect objects in a given frame
+    # Perform object detection on the given frame using the YOLO model
     def detect_objects(self, frame):
-        height, width, _ = frame.shape  # Get the frame's dimensions
-        # Create a blob from the image, normalize and resize it for YOLO model
+        height, width, _ = frame.shape  # Get the dimensions of the frame
+        # Create a blob (image preprocessing) for YOLO: normalize, resize, and swap RGB channels
         blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
-        self.net.setInput(blob)  # Set the blob as input to the YOLO network
+        self.net.setInput(blob)  # Set the blob as the input to the YOLO network
         
-        # Get the YOLO model's output layers
+        # Get the names of the output layers from the YOLO model
         layer_names = self.net.getLayerNames()
         try:
             output_layers = [layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
         except:
             output_layers = [layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
-        # Perform forward pass to get output from YOLO
+        
+        # Perform a forward pass through the YOLO model to get detection results
         outputs = self.net.forward(output_layers)
         
-        boxes = []  # List to store bounding box coordinates
-        confidences = []  # List to store detection confidence levels
-        class_ids = []  # List to store detected object class IDs
+        boxes, confidences, class_ids = [], [], []  # Lists to store detected boxes, confidences, and class IDs
         
-        # Iterate through the outputs and extract detected objects
+        # Loop through each output layer to extract detection data
         for output in outputs:
             for detection in output:
-                scores = detection[5:]  # Extract the scores for all object classes
+                scores = detection[5:]  # Detection confidence scores for each object class
                 class_id = np.argmax(scores)  # Get the class with the highest score
-                confidence = scores[class_id]  # Confidence level of the detected object
+                confidence = scores[class_id]  # Get the confidence level of the detection
                 if confidence > 0.5:  # Only consider detections with confidence > 50%
-                    # Get the coordinates for the center of the object
+                    # Calculate the center and dimensions of the detected object
                     center_x = int(detection[0] * width)
                     center_y = int(detection[1] * height)
-                    # Get the width and height of the detected object
                     w = int(detection[2] * width)
                     h = int(detection[3] * height)
                     # Calculate the top-left corner of the bounding box
                     x = int(center_x - w / 2)
                     y = int(center_y - h / 2)
-                    # Append the bounding box, confidence, and class ID to their respective lists
+                    # Append the detection data to the respective lists
                     boxes.append([x, y, w, h])
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
         
         return boxes, confidences, class_ids  # Return the detected boxes, confidences, and class IDs
 
-    # Draw bounding boxes around detected objects
+    # Draw bounding boxes around detected objects in the frame
     def draw_bounding_boxes(self, frame, boxes, confidences, class_ids):
-        # Apply Non-Maximum Suppression (NMS) to reduce overlapping boxes
+        # Use Non-Maximum Suppression (NMS) to reduce redundant overlapping boxes
         indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
         for i in range(len(boxes)):
-            if i in indexes:  # Only consider boxes that passed NMS
-                x, y, w, h = boxes[i]  # Extract the box coordinates
-                label = str(self.classes[class_ids[i]])  # Get the object label (class name)
-                color = self.colors[class_ids[i]]  # Get the color for the class
-                # Draw the rectangle around the object
+            if i in indexes:  # Only draw boxes that passed NMS filtering
+                x, y, w, h = boxes[i]  # Get the box coordinates
+                label = str(self.classes[class_ids[i]])  # Get the object label (e.g., car, person)
+                color = self.colors[class_ids[i]]  # Get the color associated with the object class
+                # Draw a rectangle around the detected object
                 cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-                # Add the label (class name) above the rectangle
+                # Add the label above the rectangle
                 cv2.putText(frame, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-        return frame  # Return the frame with bounding boxes drawn
+        return frame  # Return the frame with drawn bounding boxes
 
-    # Estimate carbon emissions based on the detected object type
+    # Estimate the carbon emission for the detected object type
     def estimate_carbon_emission(self, object_name):
-        # Simplified carbon emission estimates for different objects (in gCO2e)
+        # Simplified carbon emission estimates for various objects in gCO2e
         emissions = {
-            "car": 120,  # Car emits 120 gCO2e per km
-            "bus": 80,   # Bus emits 80 gCO2e per km
-            "bicycle": 0,  # Bicycle emits 0 carbon
-            "person": 0,  # Human walking has negligible carbon emission
-            "laptop": 52, # Laptop emits 52 kgCO2e/year
-            # Add more objects and their emission data as needed
+            "car": 120,  # Cars emit approximately 120 gCO2e per km
+            "bus": 80,  # Buses emit around 80 gCO2e per km
+            "bicycle": 0,  # Bicycles have no carbon emissions
+            "person": 0,  # Walking produces negligible emissions
+            "laptop": 52,  # Laptops emit 52 kgCO2e/year
+            # More objects can be added as needed
         }
-        # Return the emission value for the object, or "Unknown" if not found
-        return emissions.get(object_name, "Unknown")
+        return emissions.get(object_name, "Unknown")  # Return the emission estimate or "Unknown" if not found
 
-# Run the app
-if __name__ == '__main__':
+# Entry point of the application
+# This will start the Kivy app and display the camera feed with carbon emission estimates
+if __name__ == "__main__":
     CarbonDetectorApp().run()
