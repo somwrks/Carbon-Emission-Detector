@@ -1,5 +1,4 @@
-
-# Importing necessary libraries for the Carbon Emission Detector App
+# Import necessary libraries for the Carbon Emission Detector App
 # The app uses Kivy for the UI, OpenCV for image processing, and YOLO for object detection
 
 from kivy.app import App  # Main Kivy app class
@@ -17,7 +16,7 @@ class CarbonDetectorApp(App):
     
     # Initialize the app and build the user interface (UI)
     def build(self):
-        # Load the YOLO model for object detection
+        # Load the YOLO model for vehicle detection
         self.load_model()  # Custom function to load the pre-trained YOLO model and its configuration
         
         # Create the main layout (vertical box) for displaying the camera feed and carbon emission label
@@ -55,12 +54,12 @@ class CarbonDetectorApp(App):
             # Draw bounding boxes around detected objects and label them
             frame = self.draw_bounding_boxes(frame, boxes, confidences, class_ids)
             
-            # Retrieve the detected object names and estimate their carbon emissions
+            # Retrieve the detected vehicle types and estimate their carbon emissions
             detected_objects = [self.classes[class_id] for class_id in class_ids]
             emissions = [self.estimate_carbon_emission(obj) for obj in detected_objects]
-            # Display the carbon emission estimates on the label
-            emission_text = ", ".join([f"{obj}: {emission}" for obj, emission in zip(detected_objects, emissions)])
-            self.label.text = f"Carbon Emissions: {emission_text}"  # Update the label text
+            # Display the vehicle type and emission estimates on the label
+            emission_text = ", ".join([f"{obj}: {emission} gCO2/km" for obj, emission in zip(detected_objects, emissions)])
+            self.label.text = f"Vehicle Type & Emissions: {emission_text}"  # Update the label text
             
             # Convert the processed frame back into a Kivy texture for display
             buf = cv2.flip(frame, 0).tostring()  # Flip the frame vertically (needed for correct display)
@@ -68,13 +67,13 @@ class CarbonDetectorApp(App):
             texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')  # Update texture with the new frame data
             self.camera.texture = texture  # Set the updated texture as the current camera feed
     
-    # Load the YOLO object detection model and corresponding class names
+    # Load the YOLO object detection model and corresponding class names for vehicle detection
     def load_model(self):
         # Load pre-trained YOLO weights and configuration from disk
         net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
-        # Read the object class names from a text file (coco.names)
-        with open("coco.names", "r") as f:
-            self.classes = [line.strip() for line in f.readlines()]  # List of all detectable objects
+        # Read the vehicle class names from a text file (e.g., vehicle_classes.names)
+        with open("vehicle_classes.names", "r") as f:
+            self.classes = [line.strip() for line in f.readlines()]  # List of detectable vehicle classes (e.g., sedan, truck)
         # Generate random colors to visually distinguish between different object classes
         self.colors = np.random.uniform(0, 255, size=(len(self.classes), 3))
         self.net = net  # Store the loaded YOLO model for later use in detection
@@ -127,28 +126,27 @@ class CarbonDetectorApp(App):
         for i in range(len(boxes)):
             if i in indexes:  # Only draw boxes that passed NMS filtering
                 x, y, w, h = boxes[i]  # Get the box coordinates
-                label = str(self.classes[class_ids[i]])  # Get the object label (e.g., car, person)
+                label = str(self.classes[class_ids[i]])  # Get the object label (e.g., sedan, truck)
                 color = self.colors[class_ids[i]]  # Get the color associated with the object class
                 # Draw a rectangle around the detected object
                 cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-                # Add the label above the rectangle
-                cv2.putText(frame, label, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-        return frame  # Return the frame with drawn bounding boxes
+                # Add the object label and confidence score above the box
+                cv2.putText(frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+        return frame  # Return the processed frame with bounding boxes
 
-    # Estimate the carbon emission for the detected object type
-    def estimate_carbon_emission(self, object_name):
-        # Simplified carbon emission estimates for various objects in gCO2e
-        emissions = {
-            "car": 120,  # Cars emit approximately 120 gCO2e per km
-            "bus": 80,  # Buses emit around 80 gCO2e per km
-            "bicycle": 0,  # Bicycles have no carbon emissions
-            "person": 0,  # Walking produces negligible emissions
-            "laptop": 52,  # Laptops emit 52 kgCO2e/year
-            # More objects can be added as needed
+    # Estimate the carbon emission based on the detected vehicle type
+    def estimate_carbon_emission(self, vehicle_type):
+        # Carbon emission data (in gCO2/km) for different vehicle types
+        vehicle_emissions = {
+            "sedan": 180,
+            "suv": 220,
+            "truck": 250,
+            "van": 200,
+            "motorcycle": 100
         }
-        return emissions.get(object_name, "Unknown")  # Return the emission estimate or "Unknown" if not found
+        # Return the estimated emissions for the detected vehicle type
+        return vehicle_emissions.get(vehicle_type.lower(), "Unknown")  # Return "Unknown" if vehicle type is not found
 
-# Entry point of the application
-# This will start the Kivy app and display the camera feed with carbon emission estimates
-if __name__ == "__main__":
+# Run the CarbonDetectorApp
+if __name__ == '__main__':
     CarbonDetectorApp().run()
