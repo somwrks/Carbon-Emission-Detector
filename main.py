@@ -1,3 +1,8 @@
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.camera import Camera
+from kivy.uix.label import Label
+from kivy.clock import Clock
 import torch
 import torchvision
 from torchvision import transforms
@@ -23,7 +28,7 @@ class CarDetectorApp(App):
         self.recognition_model = torchvision.models.resnet50(pretrained=True)
         num_ftrs = self.recognition_model.fc.in_features
         self.recognition_model.fc = torch.nn.Linear(num_ftrs, 196)  # 196 classes in Stanford Cars Dataset
-        self.recognition_model.load_state_dict(torch.load('path_to_stanford_cars_model.pth'))
+        self.recognition_model.load_state_dict(torch.load('stanford_car_model.pth'))
         self.recognition_model.eval()
 
         # Load class names
