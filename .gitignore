@@ -2,3 +2,5 @@ venv
 
 yolov3.cfg
 yolov3.weights
+yolov5s.pt
+stanford_car_model.pth
