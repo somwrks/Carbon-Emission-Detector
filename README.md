@@ -14,7 +14,7 @@ Ensure you have Python installed on your machine. Then, follow these steps:
 
 1. Install required dependencies:
    ```
-   pip install kivy tensorflow opencv-python
+   pip install kivy tensorflow opencv-python kaggle numpy pandas torch torchvision
    ```
 
 2. Set up a virtual environment:
