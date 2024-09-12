@@ -2,6 +2,16 @@
 
 This project is a Kivy-based mobile app that uses YOLO for object detection and estimates carbon emissions based on the detected objects. It leverages OpenCV for image processing and provides live updates of the detected objects and their corresponding carbon footprint.
 
+### Here's what the code is trying to do-
+
+1. Load a YOLOv5 model for general car detection.
+2. Load a custom-trained model for identifying specific car makes and models.
+3. Use these models in a Kivy app to process camera input in real-time.
+4. Detect cars in the camera feed using YOLOv5.
+5. For each detected car, try to identify its make and model.
+6. Predict carbon emissions based on the identified make and model.
+7. (Unfinished) Fine tune the model for more accuracy on different model of cars
+
 ### Exact Workflow/Structure of Application and Dataset is undecided, feel free to @ me to discuss or join discord 
 
 
@@ -14,7 +24,7 @@ Ensure you have Python installed on your machine. Then, follow these steps:
 
 1. Install required dependencies:
    ```
-   pip install kivy tensorflow opencv-python kaggle numpy pandas torch torchvision
+   pip install kivy tensorflow kaggle numpy pandas torch torchvision
    ```
 
 2. Set up a virtual environment:
@@ -36,7 +46,6 @@ Ensure you have Python installed on your machine. Then, follow these steps:
    ```
    wget https://pjreddie.com/media/files/yolov3.weights
    wget https://github.com/pjreddie/darknet/blob/master/cfg/yolov3.cfg
-   wget https://github.com/pjreddie/darknet/blob/master/data/coco.names
    ```
 
 
@@ -57,13 +66,13 @@ We welcome contributions to improve the app! Whether it's fixing a bug, adding a
 2. **Clone the forked repository**:  
    Clone your forked repository to your local machine:
    ```
-   git clone https://github.com/<your-username>/carbon-emission-detector.git
+   git clone https://github.com/somwrks/Carbon-Emission-Detector.git
    ```
 
 3. **Create a new branch**:  
    Make sure to create a new branch for your changes:
    ```
-   git checkout -b your-branch-name
+   git checkout -b main
    ```
 
 4. **Make your changes**:  
@@ -81,7 +90,7 @@ We welcome contributions to improve the app! Whether it's fixing a bug, adding a
 7. **Push your changes**:  
    Push your changes to your fork:
    ```
-   git push origin your-branch-name
+   git push origin main
    ```
 
 8. **Submit a Pull Request (PR)**:  
