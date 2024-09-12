@@ -1,18 +1,17 @@
 # Carbon Emission Detector App
 
-This project is a Kivy-based mobile app that uses YOLO for object detection and estimates carbon emissions based on the detected objects. It leverages OpenCV for image processing and provides live updates of the detected objects and their corresponding carbon footprint.
+This project is a Kivy-based mobile app that uses a pre-trained Faster R-CNN model for car detection and estimates carbon emissions based on the detected vehicles. It leverages OpenCV for image processing and provides live updates of the detected cars and their corresponding estimated carbon footprint.
 
 ### Here's what the code is trying to do-
 
-1. Load a YOLOv5 model for general car detection.
-2. Load a custom-trained model for identifying specific car makes and models.
-3. Use these models in a Kivy app to process camera input in real-time.
-4. Detect cars in the camera feed using YOLOv5.
-5. For each detected car, try to identify its make and model.
-6. Predict carbon emissions based on the identified make and model.
-7. (Unfinished) Fine tune the model for more accuracy on different model of cars
+1. Use a pre-trained Faster R-CNN model from torchvision for car detection.
+2. Process camera input in real-time using a Kivy app.
+3. Detect cars in the camera feed.
+4. Estimate the size/class of the detected car.
+5. Predict carbon emissions based on the estimated car size using a Canadian CO2 emissions dataset.
+6. Display the results in real-time, including the detected car's class and estimated CO2 emissions.
 
-### Exact Workflow/Structure of Application and Dataset is undecided, feel free to @ me to discuss or join discord 
+![image](https://github.com/user-attachments/assets/19bdaebc-4840-499f-9551-9045b36d0ee2)
 
 
 ## Run the Project
@@ -24,7 +23,8 @@ Ensure you have Python installed on your machine. Then, follow these steps:
 
 1. Install required dependencies:
    ```
-   pip install kivy tensorflow kaggle numpy pandas torch torchvision
+   pip install kivy opencv-python numpy torch torchvision pillow pandas
+
    ```
 
 2. Set up a virtual environment:
@@ -53,6 +53,25 @@ Ensure you have Python installed on your machine. Then, follow these steps:
    ```
    python main.py
    ```
+
+## Project Structure
+`main.py`: The main application file containing the Kivy app and car detection logic.
+`data/CO2_Emissions_Canada.csv`: Dataset containing CO2 emissions data for various vehicle classes.
+
+## How It Works
+
+- The app uses a pre-trained Faster R-CNN model to detect cars in the camera feed.
+- For each detected car, it estimates the vehicle class (COMPACT, MID-SIZE, or SUV - SMALL) based on the size of the detected bounding box.
+- Using the estimated vehicle class, it looks up the average CO2 emissions from the Canadian emissions dataset.
+- The app displays the detected vehicle class and its estimated CO2 emissions in real-time.
+
+## Future Improvements
+
+1. Implement a more sophisticated car make and model recognition system.
+2. Improve the accuracy of CO2 emissions estimation by considering more factors.
+3. Optimize the app for better performance on mobile devices.
+4. Expand the dataset to include a wider range of vehicles and more accurate emissions data.
+
 
 ## Contributing
 
