@@ -9,3 +9,11 @@ yolov5s.pt
 stanford_car_model.pth
 
 data
+
+imagenet_classes.json
+
+yolov5s.pt
+
+yolov5su.pt
+
+CO2_Emissions_Canada.csv
