@@ -68,13 +68,6 @@ Run the application:
 - Estimated vehicle class (COMPACT, MID-SIZE, or SUV - SMALL)
 - Estimated CO2 emissions in g/km
 
-## How It Works
-
-1. The app uses a pre-trained Faster R-CNN model to detect cars in the camera feed.
-2. For each detected car, it estimates the vehicle class based on the size of the detected bounding box.
-3. Using the estimated vehicle class, it looks up the average CO2 emissions from the Canadian emissions dataset.
-4. The app displays the detected vehicle information and its estimated CO2 emissions in real-time.
-
 ## Future Improvements
 
 - Implement a more sophisticated car make and model recognition system.
