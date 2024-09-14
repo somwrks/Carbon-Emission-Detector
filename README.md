@@ -55,27 +55,32 @@ Ensure you have Python installed on your machine. Then, follow these steps:
    ```
 
 ## Project Structure
-`main.py`: The main application file containing the Kivy app and car detection logic.
-`data/CO2_Emissions_Canada.csv`: Dataset containing CO2 emissions data for various vehicle classes.
+- `main.py`: The main application file containing the Kivy app and car detection logic.
+- `data/CO2_Emissions_Canada.csv`: Dataset containing CO2 emissions data for various vehicle classes.
+- `imagenet_classes.json`: JSON file containing ImageNet class names.
+
+## Usage
+
+Run the application:
+
+  The app will open a camera feed and start detecting cars. For each detected car, it will display:
+- The detected car's make/model (based on ImageNet classes)
+- Estimated vehicle class (COMPACT, MID-SIZE, or SUV - SMALL)
+- Estimated CO2 emissions in g/km
 
 ## How It Works
 
-- The app uses a pre-trained Faster R-CNN model to detect cars in the camera feed.
-- For each detected car, it estimates the vehicle class (COMPACT, MID-SIZE, or SUV - SMALL) based on the size of the detected bounding box.
-- Using the estimated vehicle class, it looks up the average CO2 emissions from the Canadian emissions dataset.
-- The app displays the detected vehicle class and its estimated CO2 emissions in real-time.
+1. The app uses a pre-trained Faster R-CNN model to detect cars in the camera feed.
+2. For each detected car, it estimates the vehicle class based on the size of the detected bounding box.
+3. Using the estimated vehicle class, it looks up the average CO2 emissions from the Canadian emissions dataset.
+4. The app displays the detected vehicle information and its estimated CO2 emissions in real-time.
 
 ## Future Improvements
 
-1. Implement a more sophisticated car make and model recognition system.
-2. Improve the accuracy of CO2 emissions estimation by considering more factors.
-3. Optimize the app for better performance on mobile devices.
-4. Expand the dataset to include a wider range of vehicles and more accurate emissions data.
-
-
-## Contributing
-
-We welcome contributions to improve the app! Whether it's fixing a bug, adding a feature, or improving documentation, your help is appreciated.
+- Implement a more sophisticated car make and model recognition system.
+- Improve the accuracy of CO2 emissions estimation by considering more factors.
+- Optimize the app for better performance on mobile devices.
+- Expand the dataset to include a wider range of vehicles and more accurate emissions data.
 
 ### How to Contribute
 
@@ -129,8 +134,3 @@ We welcome contributions to improve the app! Whether it's fixing a bug, adding a
 ### Reporting Issues
 
 If you encounter any bugs, problems, or have feature requests, feel free to open an issue on GitHub. Please provide as much context as possible, including steps to reproduce the problem.
-
----
-
-Thank you for contributing to the Carbon Emission Detector App! Your help is vital in making this project better for everyone.
-
