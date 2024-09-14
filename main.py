@@ -12,9 +12,7 @@ import cv2
 import numpy as np
 from PIL import Image
 import pandas as pd
-import requests
 
-# Load the emissions data
 emissions_data = pd.read_csv('data/CO2_Emissions_Canada.csv')
 
 def get_emissions(vehicle_class):
@@ -34,7 +32,6 @@ def load_car_classification_model():
     model.eval()
     return model
 
-# ImageNet class names
 with open('imagenet_classes.json', 'r') as f:
     imagenet_classes = json.load(f)
 
