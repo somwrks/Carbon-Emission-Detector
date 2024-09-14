@@ -8,7 +8,11 @@ yolov5s.pt
 
 stanford_car_model.pth
 
-data
+data*
+
+data/cars_test/cars_test/*
+
+*.jpg
 
 imagenet_classes.json
 
