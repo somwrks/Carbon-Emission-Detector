@@ -13,6 +13,7 @@ This project is a Kivy-based mobile app that uses a pre-trained Faster R-CNN mod
 
 ![image](https://github.com/user-attachments/assets/19bdaebc-4840-499f-9551-9045b36d0ee2)
 
+![image](https://github.com/user-attachments/assets/72c4d01a-4774-41ed-80e4-3351e00bd928)
 
 ## Run the Project
 
